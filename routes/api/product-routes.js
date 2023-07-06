@@ -106,7 +106,30 @@ router.put('/:id', (req, res) => {
 
 router.delete('/:id', (req, res) => {
   // delete one product by its `id` value
+  Product.destroy({where: {id: req.params.id}})
+  .then((product) => {
+    if (req.body.tagIds && req.body.tagIds.length) {
+      
+      ProductTag.findAll({
+        where: { product_id: req.params.id }
+      }).then((productTags) => {
+          // figure out which ones to remove
+        const productTagsToRemove = productTags
+        .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
+        .map(({ id }) => id);
+                // remove the product from the array
+        return Promise.all([
+          ProductTag.destroy({ where: { id: productTagsToRemove } }),
+        ]);
+      });
+    }
 
+    return res.json(product);
+  })
+  .catch((err) => {
+    // console.log(err);
+    res.status(400).json(err);
+  });
 });
 
 module.exports = router;
