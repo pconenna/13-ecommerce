@@ -66,22 +66,22 @@ router.put('/:id', (req, res) => {
     if (req.body.productIds && req.body.productIds.length) {
       // still needs refactor
       ProductTag.findAll({
-        where: { product_id: req.params.id }
+        where: { tag_id: req.params.id }
       }).then((productTags) => {
         // create filtered list of new tag_ids
-        const productTagIds = productTags.map(({ tag_id }) => tag_id);
-        const newProductTags = req.body.tagIds
-        .filter((tag_id) => !productTagIds.includes(tag_id))
-        .map((tag_id) => {
+        const productTagIds = productTags.map(({ product_id }) => product_id);
+        const newProductTags = req.body.productIds
+        .filter((product_id) => !productTagIds.includes(product_id))
+        .map((product_id) => {
           return {
-            product_id: req.params.id,
-            tag_id,
+            tag_id: req.params.id,
+            product_id,
           };
         });
 
           // figure out which ones to remove
         const productTagsToRemove = productTags
-        .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
+        .filter(({ product_id }) => !req.body.productIds.includes(product_id))
         .map(({ id }) => id);
                 // run both actions
         return Promise.all([
@@ -91,7 +91,7 @@ router.put('/:id', (req, res) => {
       });
     }
 
-    return res.json(product);
+    return res.json(tag);
   })
 });
 
