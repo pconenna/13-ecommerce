@@ -64,7 +64,6 @@ router.put('/:id', (req, res) => {
   })
   .then((tag) => {
     if (req.body.productIds && req.body.productIds.length) {
-      // still needs refactor
       ProductTag.findAll({
         where: { tag_id: req.params.id }
       }).then((productTags) => {
@@ -97,6 +96,30 @@ router.put('/:id', (req, res) => {
 
 router.delete('/:id', (req, res) => {
   // delete on tag by its `id` value
+  Tag.destroy({where: {id: req.params.id}})
+  .then((tag) => {
+    if (req.body.productIds && req.body.productIds.length) {
+      
+      ProductTag.findAll({
+        where: { tag_id: req.params.id }
+      }).then((productTags) => {
+          // figure out which ones to remove
+        const productTagsToRemove = productTags
+        .filter(({ product_id }) => !req.body.productIds.includes(product_id))
+        .map(({ id }) => id);
+                // remove the product from the array
+        return Promise.all([
+          ProductTag.destroy({ where: { id: productTagsToRemove } }),
+        ]);
+      });
+    }
+
+    return res.json(tag);
+  })
+  .catch((err) => {
+    // console.log(err);
+    res.status(400).json(err);
+  });
 });
 
 module.exports = router;
